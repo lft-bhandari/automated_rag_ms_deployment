@@ -30,10 +30,11 @@ class QdrantManager:
     def __init__(self, settings: Settings):
         """Initialize Qdrant manager with settings."""
         self.settings = settings
-        self.client = QdrantClient(url="http://localhost:6333")
+        self.client = QdrantClient(url=settings.qdrant_url)
         self.collection_name = settings.qdrant_collection_name
         self.vector_size = 384
         self.logger = logging.getLogger(__name__)
+        self.logger.info(f"Connecting to Qdrant at {settings.qdrant_url}")
         
     def initialize_collection(self) -> None:
         """Create collection with optimized vector configuration."""

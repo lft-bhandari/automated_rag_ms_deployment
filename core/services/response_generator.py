@@ -10,7 +10,7 @@ import logging
 import time
 from datetime import datetime
 
-from ..models.search_result import SearchResult, ResponseAnalysis
+from ..models.search_result import SearchResult, ResponseAnalysis, ConfidenceLevel
 from ..config.settings import Settings
 from ..utils import generate_text
 
@@ -88,7 +88,13 @@ class ResponseGenerator:
             #     f"confidence: {response.confidence_score:.3f}, "
             #     f"sources used: {len(response.sources_used)}"
             # )
-            return response
+            if isinstance(response, dict) and "response" in response:
+                return response
+
+            if isinstance(response, str):
+                return {"response": response}
+
+            return {"response": str(response)}
             
         except Exception as e:
             self.logger.error(f"Error generating response: {e}")
@@ -190,6 +196,7 @@ Remember to:
         return ResponseAnalysis(
             answer="I apologize, but I couldn't find any relevant information to answer your question. This could be because the query didn't match any documents in the knowledge base, or the search criteria were too restrictive.",
             confidence_score=0.0,
+            confidence_level=ConfidenceLevel.VERY_LOW,
             source_coverage=0.0,
             reasoning_steps=[
                 "No search results were returned for the query",
@@ -212,6 +219,7 @@ Remember to:
         return ResponseAnalysis(
             answer="I encountered an error while generating a response to your question. Please try again or rephrase your query.",
             confidence_score=0.0,
+            confidence_level=ConfidenceLevel.VERY_LOW,
             source_coverage=0.0,
             reasoning_steps=[
                 "Error occurred during response generation",
