@@ -1,4 +1,3 @@
-
 # Architecture Diagram
 [TODO]
 
@@ -7,32 +6,38 @@
 * Embedding Model: `BAAI/bge-small-en-v1.5`.
 * Vector Database: `Qdrant` (self-hosted).
 * Backend: `FastAPI`
-* Frontend: `Streamlit` 
+* Frontend: `Streamlit`
 * CI/CD: `GitHub Actions`
 
 # Infrastructure Setup
 1. Create an EC2 Instance.
-2. Deploy LLM, Embedding, vector db in EC2
-3. For Front End: Amplify
-4. BE:  AppRunner (Optional)
-5. Config logs
+2. Deploy LLM, Embedding, vector db in EC2.
+3. For Front End: Amplify.
+4. BE: AppRunner (Optional).
+5. Configure logs.
 
 # FastAPI Endpoints
-1. POST /index:
-    >Accepts a file (PDF/TXT), chunks the text, generates embeddings using bge-small, and stores them in Qdrant.
-2. POST /chat:
-    >Accepts a user query, performs a similarity search in Qdrant, and sends the context + query to the Qwen model for a response.
+1. `POST /document/upload-index`
+   * Accepts a `.json` file, embeds content, and stores vectors in Qdrant.
+2. `POST /document/doc-chat`
+   * Accepts `user_query` and returns an answer grounded on indexed documents.
 
-# The User Interface:
->Basic web UI that interacts with the FastAPI backend.
+# Streamlit Frontend
+A Streamlit app is available in `streamlit_app.py` with:
+* Upload UI for `/document/upload-index`.
+* Chat UI for `/document/doc-chat`.
+* Configurable FastAPI base URL from the sidebar.
 
-**Features**: 
-* A file upload widget and a chat window.
+## Run locally
+```bash
+uv sync
+uv run fastapi dev main.py --port 8000
+uv run streamlit run streamlit_app.py --server.port 8501
+```
 
 # CI/CD & Deployment
 * The entire deployment process is automatic using GitHub Actions.
-* **Trigger**: On every git push to the main branch.\
-**Workflow**:
-    Deploy: GitHub Actions to:
-    1. SSH into the EC2 instance.
-    2. Run docker-compose up -d to pull and start the Backend, and Qdrant containers.
+* **Trigger**: On every git push to the main branch.
+* **Workflow**:
+  1. SSH into the EC2 instance.
+  2. Run `docker-compose up -d` to pull and start backend and Qdrant containers.
