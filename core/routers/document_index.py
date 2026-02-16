@@ -44,29 +44,24 @@ async def ingest_documents_batch(
     document_store: DocumentStore,
     embedding_service: EmbeddingService,
 ) -> Dict[str, Any]:
-    """Ingest a batch of documents."""
     start_time = time.time()
     
-    # Generate embeddings for all documents
     contents = [doc.content for doc in documents]
     embedding_results = await embedding_service.create_embeddings_batch(contents)
     
-    # Process documents with chunking if needed
     ingestion_results = []
     total_tokens = 0
     total_chunks = 0
     
     for i, (document, embedding_result) in enumerate(zip(documents, embedding_results)):
-        # Generate chunks and chunk embeddings if document is large
         chunk_embeddings = None
-        if len(document.content.split()) > 500:  # Chunk if more than 500 words
+        if len(document.content.split()) > 500:
             chunks = embedding_service.chunk_text(document.content)
             if len(chunks) > 1:
                 document.chunks = chunks
                 chunk_embedding_results = await embedding_service.create_embeddings_batch(chunks)
-                chunk_embeddings = [result.embedding for result in chunk_embedding_results]
+                chunk_embeddings = chunk_embedding_results  # preserve full objects
         
-        # Ingest document
         result = document_store.ingest_document(
             document=document,
             embedding=embedding_result.embedding,
@@ -76,8 +71,6 @@ async def ingest_documents_batch(
         ingestion_results.append(result)
         total_tokens += embedding_result.token_count
         total_chunks += result.chunk_count or 0
-        
-        # Update progress
         
         if result.success:
             logger.info(f"{document.metadata.title or document.id}")
@@ -96,6 +89,7 @@ async def ingest_documents_batch(
         "processing_time": processing_time,
         "results": ingestion_results
     }
+
 
 def load_documents_from_json(file_path: Path) -> List[Dict[str, Any]]:
     """Load documents from JSON file."""

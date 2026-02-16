@@ -7,10 +7,11 @@ services:
     volumes:
       - qdrant_data:/qdrant/storage
     healthcheck:
-      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/6333"]
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/6333"]
       interval: 5s
       timeout: 5s
       retries: 5
+      start_period: 20s
 
   ollama:
     image: ollama/ollama:latest
@@ -23,8 +24,7 @@ services:
       test: ["CMD", "ollama", "list"]
       interval: 10s
       timeout: 5s
-      retries: 10
-      start_period: 20s
+      retries: 5
 
   ollama-model-init:
     image: ollama/ollama:latest
@@ -33,9 +33,9 @@ services:
       ollama:
         condition: service_healthy
     environment:
-      OLLAMA_HOST: "http://ollama:11434"
-    entrypoint: ["/bin/sh", "-c"]
-    command: "ollama pull qwen3:0.6b"
+      OLLAMA_HOST: "rag-ollama:11434"
+    # FIX: Use the 'pull' command directly to avoid TTY/interactive errors
+    command: ["pull", "qwen3:0.6b"]
     restart: "no"
 
   backend:
@@ -53,9 +53,8 @@ services:
     environment:
       QDRANT_HOST: qdrant
       QDRANT_PORT: "6333"
-      LLM_API_URL: "http://ollama:11434/api/generate"
+      LLM_API_URL: "http://rag-ollama:11434/api/generate"
       LLM_MODEL: "qwen3:0.6b"
-      LLM_MODEL_NAME: "qwen3:0.6b"
       EMBEDDING_SERVICE_URL: "http://backend:8000/document/embed/"
     ports:
       - "8000:8000"
@@ -64,7 +63,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
-      start_period: 45s
+      start_period: 60s
 
   frontend:
     build:

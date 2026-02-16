@@ -92,11 +92,23 @@ class EmbeddingService:
         self.last_request_time = 0
         self.min_request_interval = 0.1  # 100ms between requests
     
-    async def create_embedding(self, text: str) -> EmbeddingResult:
-        """Create embedding for a single text."""
-        results = get_text_embeddings([text])
-        return results[0]
-    
+    def create_embedding(self, text: str) -> EmbeddingResult:
+        start_time = time.time()
+        embedding = get_text_embeddings([text])[0]
+        text_hash = self._hash_text(text)
+        token_count = len(self.encoding.encode(text))
+        processing_time = time.time() - start_time
+
+        return EmbeddingResult(
+            embedding=embedding,
+            token_count=token_count,
+            processing_time=processing_time,
+            text_hash=text_hash,
+            model_used=self.model,
+            cached=False,
+            created_at=datetime.now()
+        )
+
     async def create_embeddings_batch(self, texts: List[str]) -> List[EmbeddingResult]:
         """Create embeddings for multiple texts with automatic chunking."""
         if not texts:
@@ -216,7 +228,7 @@ class EmbeddingService:
             # Return empty embeddings as fallback
             return [
                 EmbeddingResult(
-                    embedding=[0.0] * 1536,  # Default dimension for text-embedding-3-small
+                    embedding=[0.0] * 384,  # Default dimension for text-embedding-3-small
                     token_count=len(self.encoding.encode(text)),
                     processing_time=0.0,
                     text_hash=self._hash_text(text),
