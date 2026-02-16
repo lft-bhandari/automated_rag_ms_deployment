@@ -26,14 +26,32 @@
 A Streamlit app is available in `streamlit_app.py` with:
 * Upload UI for `/document/upload-index`.
 * Chat UI for `/document/doc-chat`.
-* Configurable FastAPI base URL from the sidebar.
+* Configurable FastAPI base URL from the sidebar (or `API_BASE_URL` env var).
 
-## Run locally
+## Run locally (without Docker)
 ```bash
 uv sync
 uv run fastapi dev main.py --port 8000
 uv run streamlit run streamlit_app.py --server.port 8501
 ```
+
+# Dockerized setup
+This repository includes:
+* `Dockerfile.api` for FastAPI.
+* `Dockerfile.streamlit` for Streamlit.
+* `docker-compose.yml` for Qdrant + backend + frontend.
+
+## Run with Docker Compose
+```bash
+docker compose up --build
+```
+
+### Exposed services
+* FastAPI: `http://localhost:8000`
+* Streamlit: `http://localhost:8501`
+* Qdrant: `http://localhost:6333`
+
+> Note: `LLM_API_URL` is configured to `http://host.docker.internal:11434/api/generate` in Compose, so your Ollama/LLM server should be reachable from Docker at that address.
 
 # CI/CD & Deployment
 * The entire deployment process is automatic using GitHub Actions.

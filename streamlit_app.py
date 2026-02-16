@@ -1,3 +1,4 @@
+import os
 import json
 from typing import Any
 
@@ -48,9 +49,10 @@ if "messages" not in st.session_state:
 
 with st.sidebar:
     st.header("API Settings")
+    default_api_base = os.getenv("API_BASE_URL", "http://localhost:8000")
     api_base_url = st.text_input(
         "FastAPI base URL",
-        value="http://localhost:8000",
+        value=default_api_base,
         help="Base URL where the FastAPI service is running.",
     ).rstrip("/")
 
