@@ -39,7 +39,7 @@ uv run streamlit run streamlit_app.py --server.port 8501
 This repository includes:
 * `Dockerfile.api` for FastAPI.
 * `Dockerfile.streamlit` for Streamlit.
-* `docker-compose.yml` for Qdrant + backend + frontend.
+* `docker-compose.yml` for Qdrant + backend + frontend with health checks and startup ordering.
 
 ## Run with Docker Compose
 ```bash

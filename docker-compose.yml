@@ -6,6 +6,11 @@ services:
       - "6333:6333"
     volumes:
       - qdrant_data:/qdrant/storage
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6333/readyz"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
   backend:
     build:
@@ -13,7 +18,8 @@ services:
       dockerfile: Dockerfile.api
     container_name: rag-backend
     depends_on:
-      - qdrant
+      qdrant:
+        condition: service_healthy
     environment:
       QDRANT_HOST: qdrant
       QDRANT_PORT: "6333"
@@ -21,6 +27,11 @@ services:
       EMBEDDING_SERVICE_URL: "http://backend:8000/document/embed/"
     ports:
       - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
   frontend:
     build:
@@ -28,7 +39,8 @@ services:
       dockerfile: Dockerfile.streamlit
     container_name: rag-frontend
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     environment:
       API_BASE_URL: "http://backend:8000"
     ports:
