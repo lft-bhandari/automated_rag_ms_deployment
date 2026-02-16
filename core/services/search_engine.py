@@ -156,8 +156,8 @@ class HybridSearchEngine:
         )
         
         # Generate query embedding
-        query_embedding_result = await self.embedder.create_embedding(query_analysis.processed_query)
-        query_vector = query_embedding_result
+        query_embedding_result = self.embedder.create_embedding(query_analysis.processed_query)
+        query_vector = query_embedding_result.embedding
         
         # Prepare Qdrant filter
         qdrant_filter = self._build_filter(filters) if filters else None
