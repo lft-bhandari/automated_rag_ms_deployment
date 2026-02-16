@@ -22,6 +22,7 @@ qdrant_manager = QdrantManager(settings)
 embedding_service = EmbeddingService(settings)
 document_store = DocumentStore(qdrant_manager, settings)
 
+qdrant_manager.initialize_collection()
 logger = logging.getLogger(__name__)
      
 
