@@ -66,29 +66,28 @@ class ResponseGenerator:
         try:
             response = generate_text(
                 model=self.model,
-                messages=messages,
-                response_model=ResponseAnalysis,
-                temperature=temperature,
-                max_tokens=self.max_tokens
+                prompt=messages,
+                # response_model=ResponseAnalysis,
+                # temperature=temperature,
+                # max_tokens=self.max_tokens
             )
             
             # Enhance response with additional metadata
-            processing_time = time.time() - start_time
-            response.processing_time = processing_time
-            response.query = query
-            response.search_results_count = len(search_results)
-            response.model_used = self.model
-            response.token_count = len(response.answer.split())  # Rough estimate
+            # processing_time = time.time() - start_time
+            # response.processing_time = processing_time
+            # response.query = query
+            # response.search_results_count = len(search_results)
+            # response.model_used = self.model
+            # response.token_count = len(response.answer.split())  # Rough estimate
             
             # Add detailed source information
-            response.source_details = [result.get_source_info() for result in top_sources]
+            # response.source_details = [result.get_source_info() for result in top_sources]
             
-            self.logger.info(
-                f"Response generated in {processing_time:.3f}s, "
-                f"confidence: {response.confidence_score:.3f}, "
-                f"sources used: {len(response.sources_used)}"
-            )
-            
+            # self.logger.info(
+            #     f"Response generated in {processing_time:.3f}s, "
+            #     f"confidence: {response.confidence_score:.3f}, "
+            #     f"sources used: {len(response.sources_used)}"
+            # )
             return response
             
         except Exception as e:
