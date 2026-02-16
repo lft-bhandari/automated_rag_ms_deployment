@@ -60,7 +60,7 @@ async def ingest_documents_batch(
             if len(chunks) > 1:
                 document.chunks = chunks
                 chunk_embedding_results = await embedding_service.create_embeddings_batch(chunks)
-                chunk_embeddings = chunk_embedding_results  # preserve full objects
+                chunk_embeddings = [result.embedding for result in chunk_embedding_results]
         
         result = document_store.ingest_document(
             document=document,
@@ -125,6 +125,8 @@ async def upload_and_index(
         # 2. Read and Parse JSON content
         contents = await file.read()
         raw_documents = json.loads(contents)
+        if isinstance(raw_documents, dict):
+            raw_documents = [raw_documents]
         
         # 3. Transform to Document Objects
         documents = [
