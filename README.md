@@ -39,7 +39,7 @@ uv run streamlit run streamlit_app.py --server.port 8501
 This repository includes:
 * `Dockerfile.api` for FastAPI.
 * `Dockerfile.streamlit` for Streamlit.
-* `docker-compose.yml` for Qdrant + backend + frontend with health checks and startup ordering.
+* `docker-compose.yml` for Qdrant + Ollama + backend + frontend with health checks and startup ordering.
 
 ## Run with Docker Compose
 ```bash
@@ -50,8 +50,9 @@ docker compose up --build
 * FastAPI: `http://localhost:8000`
 * Streamlit: `http://localhost:8501`
 * Qdrant: `http://localhost:6333`
+* Ollama API: `http://localhost:11434`
 
-> Note: `LLM_API_URL` is configured to `http://host.docker.internal:11434/api/generate` in Compose, so your Ollama/LLM server should be reachable from Docker at that address.
+> Note: Compose now provisions Ollama inside Docker and pre-pulls `qwen3:0.6b` via an init service before the backend starts.
 
 # CI/CD & Deployment
 * The entire deployment process is automatic using GitHub Actions.

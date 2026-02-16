@@ -12,18 +12,50 @@ services:
       timeout: 5s
       retries: 5
 
+  ollama:
+    image: ollama/ollama:latest
+    container_name: rag-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  ollama-model-init:
+    image: ollama/ollama:latest
+    container_name: rag-ollama-model-init
+    depends_on:
+      ollama:
+        condition: service_healthy
+    environment:
+      OLLAMA_HOST: "http://ollama:11434"
+    entrypoint: ["/bin/sh", "-c"]
+    command: "ollama pull qwen3:0.6b"
+    restart: "no"
+
   backend:
     build:
       context: .
       dockerfile: Dockerfile.api
     container_name: rag-backend
-    # Corrected: Using list syntax since you don't have a health condition here
     depends_on:
-      - qdrant
+      qdrant:
+        condition: service_healthy
+      ollama:
+        condition: service_healthy
+      ollama-model-init:
+        condition: service_completed_successfully
     environment:
       QDRANT_HOST: qdrant
       QDRANT_PORT: "6333"
-      LLM_API_URL: "http://host.docker.internal:11434/api/generate"
+      LLM_API_URL: "http://ollama:11434/api/generate"
+      LLM_MODEL: "qwen3:0.6b"
+      LLM_MODEL_NAME: "qwen3:0.6b"
       EMBEDDING_SERVICE_URL: "http://backend:8000/document/embed/"
     ports:
       - "8000:8000"
@@ -32,14 +64,13 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
-      start_period: 45s  # Gives the app 20 seconds to load models before checking
+      start_period: 45s
 
   frontend:
     build:
       context: .
       dockerfile: Dockerfile.streamlit
     container_name: rag-frontend
-    # Corrected: Mapping syntax for condition
     depends_on:
       backend:
         condition: service_healthy
@@ -50,3 +81,4 @@ services:
 
 volumes:
   qdrant_data:
+  ollama_data:
